@@ -1,0 +1,39 @@
+name: Build on Push to Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: pull latest main version
+        run: git pull origin main
+        working-directory: PATH_TO_THE_PROJECT
+
+      # Building docker conatiners and restarting them
+      - name: Build and Deploy with Docker
+        run: |
+          echo "Listing all running containers:"
+          docker ps -a
+
+          echo "Checking if CONTAINER_NAME container exists:"
+          if [ -n "$(docker ps -aq -f name=CONTAINER_NAME)" ]; then
+            echo "CONTAINER_NAME container exists. Stopping and removing it..."
+            docker stop CONTAINER_NAME
+            docker rm CONTAINER_NAME
+          else
+            echo "CONTAINER_NAME container does not exist."
+          fi
+
+          docker build -t CONTAINER_NAME . -f ./docker/Dockerfile
+          docker run -d --name CONTAINER_NAME -p 3001:3001 CONTAINER_NAME
+        working-directory: PATH_TO_THE_PROJECT
+
+      # Optional: clearing not used containers
+      - name: Prune Docker
+        run: docker system prune -f
+        working-directory: PATH_TO_THE_PROJECT
