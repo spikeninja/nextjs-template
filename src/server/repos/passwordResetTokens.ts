@@ -6,7 +6,7 @@ import { passwordResetTokensTable } from "@/db/schema"
 
 class PasswordResetTokensRepository {
   async getById(id: number) {
-    return db
+    return await db
       .select()
       .from(passwordResetTokensTable)
       .where(eq(passwordResetTokensTable.id, id))

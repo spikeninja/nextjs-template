@@ -3,8 +3,8 @@ export const APP_TITLE = "Your Title"
 export const redirects = {
   toLogin: "/login",
   toSignup: "/register",
-  afterLogin: "/home",
+  afterLogin: "/app",
   afterLogout: "/",
-  toVerify: "/verify-email",
-  afterVerify: "/home",
+  toVerify: "/email-verify",
+  afterVerify: "/app",
 } as const

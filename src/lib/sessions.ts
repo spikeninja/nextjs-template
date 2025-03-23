@@ -30,6 +30,7 @@ export async function validateSessionToken(
   token: string
 ): Promise<SessionValidationResult> {
   const sessionId = createHash("sha256").update(token).digest("hex")
+  console.log("sessionId: ", sessionId)
   const result = await db
     .select({ user: usersTable, session: sessionsTable })
     .from(sessionsTable)

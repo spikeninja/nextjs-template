@@ -3,6 +3,8 @@ import "dotenv/config"
 
 const envSchema = z
   .object({
+    APP_URL: z.string(),
+
     DATABASE_URL: z.string(),
 
     RESET_PASSWORD_TOKEN_MINUTES: z.coerce.number(),
@@ -17,6 +19,8 @@ const envSchema = z
     SMTP_PASSWORD: z.string(),
   })
   .transform((obj) => ({
+    appUrl: obj.APP_URL,
+
     resetPasswordTokenMinutes: obj.RESET_PASSWORD_TOKEN_MINUTES,
     resetPasswordMaxAttemptsPerDay: obj.RESET_PASSWORD_MAX_ATTEMPTS_PER_DAY,
 

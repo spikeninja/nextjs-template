@@ -11,8 +11,8 @@ import {
 import {
   loginSchema,
   registerSchema,
+  emailVerifySchema,
   resetPasswordSchema,
-  verifyEmailSchema,
 } from "@/app/(auth)/validation"
 import {
   createSession,
@@ -73,8 +73,8 @@ export async function loginAction(obj: { email: string; password: string }) {
   expTime.setDate(now.getDate() + 30)
 
   const token = generateSessionToken()
-  const session = await createSession(token, user.id)
-  await setSessionTokenCookie(session.id, expTime)
+  await createSession(token, user.id)
+  await setSessionTokenCookie(token, expTime)
 
   return redirect(redirects.afterLogin)
 }
@@ -127,14 +127,14 @@ export async function registerAction(obj: {
   // await sendMail({
   //   to: email,
   //   subject: "Verify your email",
-  //   body: renderVerificationCodeEmail({code: verificationCode})
+  //   body: renderVerificationCodeEmail({code: verificationCode.code})
   // })
 
   return redirect(`${redirects.toVerify}?sessionId=${dbUser.id}`)
 }
 
 export async function verifyEmailAction(obj: { code: string; userId: number }) {
-  const parsed = verifyEmailSchema.safeParse(obj)
+  const parsed = emailVerifySchema.safeParse(obj)
   if (!parsed.success) {
     const err = parsed.error.flatten()
     return {
@@ -216,6 +216,7 @@ export async function logoutAction() {
     }
   }
 
+  // invalidateAllSessions?
   await invalidateSession(session.id)
   await deleteSessionTokenCookie()
 
@@ -263,7 +264,7 @@ export async function forgotPasswordAction({ email }: { email: string }) {
     sessionId: dbToken.id.toString(),
   }
   const params = new URLSearchParams(queryParams)
-  const url = `https://nudemake.com/reset-password?${params.toString()}`
+  const url = `${settings.appUrl}/reset-password?${params.toString()}`
 
   // todo: later, add template render
   const template = `URL to reset the password: ${url}`
@@ -320,7 +321,9 @@ export async function resetPasswordAction(obj: {
     }
   }
 
+  console.log("SESSIONID: ", data.sessionId)
   const result = await passwordResetTokensRepository.getById(data.sessionId)
+  console.log("Result: ", result)
   if (result.length === 0) {
     return {
       success: false,

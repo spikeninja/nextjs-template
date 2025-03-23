@@ -1,9 +1,18 @@
-import Link from "next/link"
-import { HomeIcon, FileIcon, UsersRoundIcon } from "lucide-react"
+"use client"
 
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import { NavButton } from "@/components/NavButton"
+import { HomeIcon, LogOutIcon } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import { logoutAction } from "@/app/(auth)/actions"
 
 export function Header() {
+  const { mutate } = useMutation({
+    mutationKey: ["logout"],
+    mutationFn: logoutAction,
+  })
+
   return (
     <header className="animate-slide bg-background h-12 p-2 border-b sticky top-0 z-20">
       <div className="flex h-8 items-center justify-between w-full">
@@ -20,12 +29,13 @@ export function Header() {
           </Link>
         </div>
         <div className="flex items-center">
-          <NavButton href="/tickets" label="Tickets" icon={FileIcon} />
-          <NavButton
-            href="/customers"
-            label="Customers"
-            icon={UsersRoundIcon}
-          />
+          <Button
+            onClick={() => mutate()}
+            variant="ghost"
+            className="cursor-pointer"
+          >
+            <LogOutIcon />
+          </Button>
         </div>
       </div>
     </header>
