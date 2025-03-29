@@ -117,7 +117,7 @@ export async function registerAction(obj: {
   console.log("Result: ", result)
   const dbUser = result[0]
 
-  const code = await generateCode({ length: 8 })
+  const code = await generateCode({ length: 6 })
   const verificationCode = await oneTimeCodeRepository.create({
     userId: dbUser.id,
     code,

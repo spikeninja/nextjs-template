@@ -1,0 +1,16 @@
+name: PROJECT_NAME_dev
+
+services:
+  postgres_db:
+    image: postgres:17.4-alpine
+    container_name: pgsql_dev
+    ports:
+      - 5433:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
+    name: pgsql_dev_data

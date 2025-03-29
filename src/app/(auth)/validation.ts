@@ -13,7 +13,7 @@ export const registerSchema = z.object({
 
 export const emailVerifySchema = z.object({
   userId: z.number(),
-  code: z.string().min(8).max(8),
+  code: z.string().min(6).max(6),
 })
 
 export const forgotPasswordSchema = z.object({

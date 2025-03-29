@@ -1,36 +1,16 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Another one Nextjs template
 
-## Getting Started
+## Dev Usage
+Bun should be installed on your system
 
-First, run the development server:
+0) Run `cp env-example .env` and adjust the env variables (if needed)
+1) Run `bun install` to install all deps
+2) Run `docker compose -f compose-dev.yml up --build` to start up all needed services (DB, Queue, etc)
+3) Run `bun migrate:dev` to apply all migrations
+4) Run `bun dev` to start the dev server
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+To acess to the running DB you can use the appropriate script: `bash ./scripts/dev/enter-db.sh`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Prod Usage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1) ...

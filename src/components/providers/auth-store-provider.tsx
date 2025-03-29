@@ -2,7 +2,7 @@
 
 import { useStore } from "zustand"
 import { createContext, useContext, PropsWithChildren, useRef } from "react"
-import { type AuthStore, createAuthStore } from "@/stores/auth-store"
+import { type AuthStore, createAuthStore } from "@/store/auth-store"
 
 export type AuthStoreApi = ReturnType<typeof createAuthStore>
 

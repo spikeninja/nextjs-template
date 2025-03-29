@@ -5,7 +5,11 @@ const envSchema = z
   .object({
     APP_URL: z.string(),
 
-    DATABASE_URL: z.string(),
+    POSTGRES_HOST: z.string(),
+    POSTGRES_PORT: z.coerce.number(),
+    POSTGRES_USER: z.string(),
+    POSTGRES_PASSWORD: z.string(),
+    POSTGRES_DB: z.string(),
 
     RESET_PASSWORD_TOKEN_MINUTES: z.coerce.number(),
     RESET_PASSWORD_MAX_ATTEMPTS_PER_DAY: z.coerce.number(),
@@ -29,7 +33,7 @@ const envSchema = z
     smtpServer: obj.SMTP_SERVER,
     smtpPassword: obj.SMTP_PASSWORD,
 
-    databaseURL: obj.DATABASE_URL,
+    databaseURL: `postgresql://${obj.POSTGRES_USER}:${obj.POSTGRES_PASSWORD}@${obj.POSTGRES_HOST}:${obj.POSTGRES_PORT}/${obj.POSTGRES_DB}?schema=public`,
 
     turnstileSecretKey: obj.TURNSTILE_SECRET_KEY,
 

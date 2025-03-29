@@ -1,0 +1,30 @@
+name: PROJECT_NAME_prod
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: app_prod
+    env_file:
+      - .env
+
+  postgres_db:
+    image: postgres:17.4-alpine
+    container_name: pgsql_prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_prod
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+    name: pgsql_prod_data
+  redis_data:
+    name: redis_prod
