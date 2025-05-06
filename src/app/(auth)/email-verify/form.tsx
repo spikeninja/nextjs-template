@@ -1,6 +1,6 @@
 "use client"
 
-import { toast } from "react-toastify"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { verifyEmailAction } from "@/app/(auth)/actions"
 import { useMutation } from "@tanstack/react-query"

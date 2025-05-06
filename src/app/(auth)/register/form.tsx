@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { toast } from "react-toastify"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { registerAction } from "@/app/(auth)/actions"

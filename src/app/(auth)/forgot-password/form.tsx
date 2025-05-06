@@ -1,6 +1,6 @@
 "use client"
 
-import { toast } from "react-toastify"
+import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useMutation } from "@tanstack/react-query"
