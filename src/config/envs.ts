@@ -11,6 +11,9 @@ const envSchema = z
     POSTGRES_PASSWORD: z.string(),
     POSTGRES_DB: z.string(),
 
+    REDIS_HOST: z.string(),
+    REDIS_PORT: z.coerce.number(),
+
     RESET_PASSWORD_TOKEN_MINUTES: z.coerce.number(),
     RESET_PASSWORD_MAX_ATTEMPTS_PER_DAY: z.coerce.number(),
 
@@ -27,6 +30,9 @@ const envSchema = z
 
     resetPasswordTokenMinutes: obj.RESET_PASSWORD_TOKEN_MINUTES,
     resetPasswordMaxAttemptsPerDay: obj.RESET_PASSWORD_MAX_ATTEMPTS_PER_DAY,
+
+    redisHost: obj.REDIS_HOST,
+    redisPort: obj.REDIS_PORT,
 
     smtpPort: obj.SMTP_PORT,
     smtpEmail: obj.SMTP_EMAIL,

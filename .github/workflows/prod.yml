@@ -3,7 +3,7 @@ name: Build on Push to Main
 on:
   push:
     branches:
-      - main
+      - not-exising-branch # replace with main 
 
 jobs:
   build:
