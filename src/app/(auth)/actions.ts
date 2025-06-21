@@ -1,35 +1,33 @@
 "use server"
 
-import crypto from "node:crypto"
-import { redirects } from "@/lib/constants"
-import {
-  generateCode,
-  hashPassword,
-  utcNow,
-  verifyPasswords,
-} from "@/lib/security"
+import { redirects, SESSION_COOKIE_NAME } from "@/lib/constants"
 import {
   loginSchema,
   registerSchema,
   emailVerifySchema,
   resetPasswordSchema,
 } from "@/app/(auth)/validation"
-import {
-  createSession,
-  deleteSessionTokenCookie,
-  generateSessionToken,
-  invalidateSession,
-  setSessionTokenCookie,
-  validateSessionToken,
-} from "@/lib/sessions"
+import { db } from "@/server/db"
 import { cookies } from "next/headers"
-import { settings } from "@/config/envs"
 import { redirect } from "next/navigation"
-import { usersRepository } from "@/server/repos/users"
-import { oneTimeCodeRepository } from "@/server/repos/oneTimeCodes"
-import { passwordResetTokensRepository } from "@/server/repos/passwordResetTokens"
+import { SessionService } from "@/server/services/sessions"
+import {
+  loginInteractor,
+  registerInteractor,
+  verifyEmailInteractor,
+  logoutInteractor,
+  forgotPasswordInteractor,
+  resetPasswordInteractor,
+} from "@/server/interactors/auth"
+import { UsersRepository } from "@/server/repos/users"
+import { OneTimeCodesRepository } from "@/server/repos/oneTimeCodes"
+import { PasswordResetTokensRepository } from "@/server/repos/passwordResetTokens"
 
 export async function loginAction(obj: { email: string; password: string }) {
+  const cookieStore = await cookies()
+  const sessionService = new SessionService(db)
+  const usersRepository = new UsersRepository(db)
+
   const parsed = loginSchema.safeParse(obj)
   if (!parsed.success) {
     const err = parsed.error.flatten()
@@ -44,39 +42,29 @@ export async function loginAction(obj: { email: string; password: string }) {
       },
     }
   }
-
   const { email, password } = parsed.data
 
-  const user = await usersRepository.getByEmail(email)
-  if (!user) {
+  try {
+    const session = await loginInteractor(sessionService, usersRepository, {
+      email,
+      password,
+    })
+
+    await sessionService.setSessionTokenCookie(
+      { token: session.id, expiresAt: session.expiresAt },
+      (token, data) => cookieStore.set(SESSION_COOKIE_NAME, token, data)
+    )
+
+    return redirect(redirects.afterLogin)
+  } catch (err) {
     return {
       success: false,
       payload: {
-        error: "Invalid Credentials",
+        error: err,
         meta: null,
       },
     }
   }
-  const passwordsAreEqual = await verifyPasswords(password, user.hashedPassword)
-  if (!passwordsAreEqual) {
-    return {
-      success: false,
-      payload: {
-        error: "Invalid Credentials",
-        meta: null,
-      },
-    }
-  }
-
-  const now = new Date()
-  const expTime = new Date()
-  expTime.setDate(now.getDate() + 30)
-
-  const token = generateSessionToken()
-  await createSession(token, user.id)
-  await setSessionTokenCookie(token, expTime)
-
-  return redirect(redirects.afterLogin)
 }
 
 export async function registerAction(obj: {
@@ -84,6 +72,9 @@ export async function registerAction(obj: {
   name: string
   password: string
 }) {
+  const usersRepository = new UsersRepository(db)
+  const oneTimeCodeRepository = new OneTimeCodesRepository(db)
+
   const parsed = registerSchema.safeParse(obj)
   if (!parsed.success) {
     const err = parsed.error.flatten()
@@ -101,39 +92,30 @@ export async function registerAction(obj: {
 
   const { email, password, name } = parsed.data
 
-  const user = await usersRepository.getByEmail(email)
-  if (user) {
+  try {
+    const { user } = await registerInteractor(
+      usersRepository,
+      oneTimeCodeRepository,
+      { name, password, email }
+    )
+    return redirect(`${redirects.toVerify}?sessionId=${user.id}`)
+  } catch (err) {
     return {
       success: false,
-      payload: {
-        error: "User Already Exists",
+      paload: {
+        error: err,
         meta: null,
       },
     }
   }
-
-  const hashedPassword = await hashPassword(password)
-  const result = await usersRepository.create({ name, email, hashedPassword })
-  console.log("Result: ", result)
-  const dbUser = result[0]
-
-  const code = await generateCode({ length: 6 })
-  const verificationCode = await oneTimeCodeRepository.create({
-    userId: dbUser.id,
-    code,
-  })
-  console.log("VERIFICATION CODE: ", verificationCode)
-
-  // await sendMail({
-  //   to: email,
-  //   subject: "Verify your email",
-  //   body: renderVerificationCodeEmail({code: verificationCode.code})
-  // })
-
-  return redirect(`${redirects.toVerify}?sessionId=${dbUser.id}`)
 }
 
 export async function verifyEmailAction(obj: { code: string; userId: number }) {
+  const cookieStore = await cookies()
+  const sessionService = new SessionService(db)
+  const usersRepository = new UsersRepository(db)
+  const oneTimeCodeRepository = new OneTimeCodesRepository(db)
+
   const parsed = emailVerifySchema.safeParse(obj)
   if (!parsed.success) {
     const err = parsed.error.flatten()
@@ -148,55 +130,30 @@ export async function verifyEmailAction(obj: { code: string; userId: number }) {
       },
     }
   }
-
   const { userId, code } = parsed.data
-
-  const [oneTimeCode] = await oneTimeCodeRepository.getLastCode({
-    userId,
-  })
-
-  if (oneTimeCode.verificationAttempts >= settings.max_verification_attempts) {
-    return {
-      success: false,
-      payload: {
-        error:
-          "You've reached the limit of trying to enter the code. Login again to generate a new code",
-        meta: null,
-      },
-    }
-  }
-
-  const attemptsRemain =
-    settings.max_verification_attempts - oneTimeCode.verificationAttempts
-
-  if (code === oneTimeCode.code) {
-    await usersRepository.update(userId, { emailVerified: true })
-
-    const now = new Date()
-    const expTime = new Date()
-    expTime.setDate(now.getDate() + 30)
-
-    const token = generateSessionToken()
-    const session = await createSession(token, oneTimeCode.userId)
-    await setSessionTokenCookie(session.id, expTime)
-
+  try {
+    const session = await verifyEmailInteractor(
+      sessionService,
+      usersRepository,
+      oneTimeCodeRepository,
+      { userId, code }
+    )
+    await sessionService.setSessionTokenCookie(
+      { token: session.id, expiresAt: session.expiresAt },
+      (token, data) => cookieStore.set(SESSION_COOKIE_NAME, token, data)
+    )
     return redirect(redirects.afterVerify)
-  } else {
-    await oneTimeCodeRepository.increaseAttempts({ id: oneTimeCode.id })
-
-    return {
-      success: false,
-      payload: {
-        error: `Invalid code. Attempts Remain: ${attemptsRemain}`,
-        meta: null,
-      },
-    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    return { success: false, payload: { error: message, meta: null } }
   }
 }
 
 export async function logoutAction() {
   const cookieStore = await cookies()
-  const token = cookieStore.get("session")
+  const sessionService = new SessionService(db)
+
+  const token = cookieStore.get(SESSION_COOKIE_NAME)
   if (!token) {
     return {
       success: false,
@@ -206,84 +163,37 @@ export async function logoutAction() {
     }
   }
 
-  const { session } = await validateSessionToken(token.value)
-  if (!session) {
+  try {
+    await logoutInteractor(sessionService, token.value)
+    await sessionService.deleteSessionTokenCookie((data) => {
+      cookieStore.set(SESSION_COOKIE_NAME, "", data)
+    })
+    return redirect(redirects.toLogin)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
     return {
       success: false,
-      payload: {
-        error: "No session found",
-      },
+      payload: { error: message },
     }
   }
-
-  // invalidateAllSessions?
-  await invalidateSession(session.id)
-  await deleteSessionTokenCookie()
-
-  return redirect(redirects.toLogin)
 }
 
 export async function forgotPasswordAction({ email }: { email: string }) {
-  // todo: implement
-  const dbUser = await usersRepository.getByEmail(email)
-  if (!dbUser) {
-    return {
-      success: false,
-      payload: {
-        error: "You have no access to this resource",
-        meta: null,
-      },
-    }
+  const usersRepository = new UsersRepository(db)
+  const passwordResetTokensRepository = new PasswordResetTokensRepository(db)
+
+  try {
+    await forgotPasswordInteractor(
+      usersRepository,
+      passwordResetTokensRepository,
+      { email }
+    )
+
+    return { success: true, payload: { error: null, meta: null } }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    return { success: false, payload: { error: message, meta: null } }
   }
-
-  const [tokensCount] = await passwordResetTokensRepository.getNumberOfTokens({
-    userId: dbUser.id,
-    minutes: 60 * 24,
-  })
-
-  if (tokensCount.count >= settings.resetPasswordMaxAttemptsPerDay) {
-    return {
-      success: false,
-      payload: {
-        error: "You've reached the limit of trying to reset the password",
-        meta: null,
-      },
-    }
-  }
-
-  await passwordResetTokensRepository.setAllTokensAsUsed(dbUser.id)
-
-  const token = crypto.randomBytes(32).toString("hex")
-  const [dbToken] = await passwordResetTokensRepository.create({
-    token,
-    userId: dbUser.id,
-  })
-
-  const queryParams = {
-    token: token,
-    sessionId: dbToken.id.toString(),
-  }
-  const params = new URLSearchParams(queryParams)
-  const url = `${settings.appUrl}/reset-password?${params.toString()}`
-
-  // todo: later, add template render
-  const template = `URL to reset the password: ${url}`
-  console.log("TEmplate: ", template)
-
-  return {
-    success: true,
-    payload: {
-      error: null,
-      meta: null,
-    },
-  }
-
-  // TODO: send email with link
-  // await sendEmail({
-  //   to: userEmail,
-  //   html: template.toString(),
-  //   subject: 'PROJECT_NAME Password Reset',
-  // })
 }
 
 export async function resetPasswordAction(obj: {
@@ -292,6 +202,9 @@ export async function resetPasswordAction(obj: {
   newPassword: string
   newPasswordRepeat: string
 }) {
+  const usersRepository = new UsersRepository(db)
+  const passwordResetTokensRepository = new PasswordResetTokensRepository(db)
+
   const parsed = resetPasswordSchema.safeParse(obj)
   if (!parsed.success) {
     const err = parsed.error.flatten()
@@ -309,62 +222,15 @@ export async function resetPasswordAction(obj: {
     }
   }
 
-  const data = parsed.data
-
-  if (data.newPassword !== data.newPasswordRepeat) {
-    return {
-      success: false,
-      payload: {
-        error: "Password and repeat password have to be equal",
-        meta: null,
-      },
-    }
+  try {
+    await resetPasswordInteractor(
+      usersRepository,
+      passwordResetTokensRepository,
+      parsed.data
+    )
+    return redirect(redirects.toLogin)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    return { success: false, payload: { error: message, meta: null } }
   }
-
-  console.log("SESSIONID: ", data.sessionId)
-  const result = await passwordResetTokensRepository.getById(data.sessionId)
-  console.log("Result: ", result)
-  if (result.length === 0) {
-    return {
-      success: false,
-      payload: {
-        error: "Token is invalid",
-        meta: null,
-      },
-    }
-  }
-  const dbToken = result[0]
-
-  const isVerified = await verifyPasswords(data.token, dbToken.hashedToken)
-  if (!isVerified) {
-    return {
-      success: false,
-      payload: {
-        error: "Token is invalid",
-        meta: null,
-      },
-    }
-  }
-
-  // TODO: what if user is deleted at this moment?
-
-  const now = await utcNow()
-  if (now.toDate() >= dbToken.expiresAt || dbToken.used) {
-    return {
-      success: false,
-      payload: {
-        error: "Token has expired",
-        meta: null,
-      },
-    }
-  }
-
-  await usersRepository.setNewPassword({
-    id: dbToken.userId,
-    newPassword: data.newPassword,
-  })
-
-  await passwordResetTokensRepository.update(dbToken.id, { used: true })
-
-  return redirect(redirects.toLogin)
 }

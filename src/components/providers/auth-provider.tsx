@@ -1,6 +1,6 @@
 "use client"
 
-import type { User } from "@/db/schema"
+import type { User } from "@/server/db/schema"
 import { PropsWithChildren, useContext, createContext } from "react"
 
 export interface AuthContextValue {

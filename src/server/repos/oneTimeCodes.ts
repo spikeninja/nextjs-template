@@ -1,10 +1,12 @@
-import { db } from "@/db"
-import { oneTimeCodesTable } from "@/db/schema"
+import { DB } from "@/server/db"
+import { oneTimeCodesTable } from "@/server/db/schema"
 import { eq, gt, sql, count, desc, and } from "drizzle-orm"
 
-class OneTimeCodesRepository {
+export class OneTimeCodesRepository {
+  constructor(private readonly db: DB) {}
+
   async getLastCode({ userId }: { userId: number }) {
-    const oneTimeCode = await db
+    const oneTimeCode = await this.db
       .select()
       .from(oneTimeCodesTable)
       .where(eq(oneTimeCodesTable.userId, userId))
@@ -15,7 +17,7 @@ class OneTimeCodesRepository {
   }
 
   async create({ userId, code }: { userId: number; code: string }) {
-    return await db
+    return await this.db
       .insert(oneTimeCodesTable)
       .values({
         code,
@@ -25,7 +27,7 @@ class OneTimeCodesRepository {
   }
 
   async getAllAttempts({ userId, minDate }: { userId: number; minDate: Date }) {
-    const [res] = await db
+    const [res] = await this.db
       .select({ count: count() })
       .from(oneTimeCodesTable)
       .where(
@@ -39,7 +41,7 @@ class OneTimeCodesRepository {
   }
 
   async increaseAttempts({ id }: { id: number }) {
-    return await db
+    return await this.db
       .update(oneTimeCodesTable)
       .set({
         verificationAttempts: sql`${oneTimeCodesTable.verificationAttempts} + 1`,
@@ -48,10 +50,8 @@ class OneTimeCodesRepository {
   }
 
   async delete({ userId }: { userId: number }) {
-    return await db
+    return await this.db
       .delete(oneTimeCodesTable)
       .where(eq(oneTimeCodesTable.userId, userId))
   }
 }
-
-export const oneTimeCodeRepository = new OneTimeCodesRepository()

@@ -1,12 +1,14 @@
-import { db } from "@/db"
+import { DB } from "@/server/db"
 import { settings } from "@/config/envs"
 import { and, count, eq, gte } from "drizzle-orm"
 import { hashPassword, utcNow } from "@/lib/security"
-import { passwordResetTokensTable } from "@/db/schema"
+import { passwordResetTokensTable } from "@/server/db/schema"
 
-class PasswordResetTokensRepository {
+export class PasswordResetTokensRepository {
+  constructor(private readonly db: DB) {}
+
   async getById(id: number) {
-    return await db
+    return await this.db
       .select()
       .from(passwordResetTokensTable)
       .where(eq(passwordResetTokensTable.id, id))
@@ -20,7 +22,7 @@ class PasswordResetTokensRepository {
     minutes: number
   }) {
     const now = await utcNow()
-    return db
+    return this.db
       .select({ count: count() })
       .from(passwordResetTokensTable)
       .where(
@@ -35,7 +37,7 @@ class PasswordResetTokensRepository {
   }
 
   async setAllTokensAsUsed(userId: number) {
-    return db
+    return this.db
       .update(passwordResetTokensTable)
       .set({ used: true })
       .where(eq(passwordResetTokensTable.userId, userId))
@@ -46,7 +48,7 @@ class PasswordResetTokensRepository {
     const hashedToken = await hashPassword(token)
     const expiresAt = now.add(settings.resetPasswordTokenMinutes, "minutes")
 
-    return db
+    return this.db
       .insert(passwordResetTokensTable)
       .values({
         userId,
@@ -63,11 +65,9 @@ class PasswordResetTokensRepository {
       used: boolean
     }
   ) {
-    return db
+    return this.db
       .update(passwordResetTokensTable)
       .set(values)
       .where(eq(passwordResetTokensTable.id, id))
   }
 }
-
-export const passwordResetTokensRepository = new PasswordResetTokensRepository()
