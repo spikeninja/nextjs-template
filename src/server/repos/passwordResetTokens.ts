@@ -2,7 +2,7 @@ import { DB } from "@/server/db"
 import { settings } from "@/config/envs"
 import { and, count, eq, gte } from "drizzle-orm"
 import { hashPassword, utcNow } from "@/lib/security"
-import { passwordResetTokensTable } from "@/server/db/schema"
+import { passwordResetTokensTable } from "@/server/db/old-schema"
 
 export class PasswordResetTokensRepository {
   constructor(private readonly db: DB) {}
