@@ -16,7 +16,7 @@ export default function RegisterForm() {
     mutationFn: registerAction,
     onSuccess: (response) => {
       if (!response.success) {
-        toast.error(response.payload.error, { position: "top-center" })
+        toast.error(response.payload?.error, { position: "top-center" })
       }
     },
   })
