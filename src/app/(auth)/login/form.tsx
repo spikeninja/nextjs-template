@@ -16,7 +16,10 @@ export function LoginForm() {
     mutationFn: loginAction,
     onSuccess: (response) => {
       if (!response.success) {
-        toast.error(response.payload.error, { position: "top-center" })
+        // todo: populate response.payload.error
+        toast.error("Login Error", {
+          position: "top-center",
+        })
       }
     },
   })

@@ -1,7 +1,7 @@
 "use client"
 
 import { useStore } from "zustand"
-import { createContext, useContext, PropsWithChildren, useRef } from "react"
+import { createContext, useContext, PropsWithChildren, useState } from "react"
 import { type AuthStore, createAuthStore } from "@/store/auth-store"
 
 export type AuthStoreApi = ReturnType<typeof createAuthStore>
@@ -11,12 +11,9 @@ export const AuthStoreContext = createContext<AuthStoreApi | undefined>(
 )
 
 export const AuthStoreProvider = ({ children }: PropsWithChildren) => {
-  const storeRef = useRef<AuthStoreApi | null>(null)
-  if (storeRef.current === null) {
-    storeRef.current = createAuthStore()
-  }
+  const [store] = useState(() => createAuthStore())
   return (
-    <AuthStoreContext.Provider value={storeRef.current}>
+    <AuthStoreContext.Provider value={store}>
       {children}
     </AuthStoreContext.Provider>
   )
