@@ -1,4 +1,4 @@
-import { type User } from "@/server/db/schema"
+import { type User } from "@/server/db/old-schema"
 import { createStore } from "zustand/vanilla"
 
 export type AuthStoreState = {

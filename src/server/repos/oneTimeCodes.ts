@@ -1,5 +1,5 @@
 import { DB } from "@/server/db"
-import { oneTimeCodesTable } from "@/server/db/schema"
+import { oneTimeCodesTable } from "@/server/db/old-schema"
 import { eq, gt, sql, count, desc, and } from "drizzle-orm"
 
 export class OneTimeCodesRepository {

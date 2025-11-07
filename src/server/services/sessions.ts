@@ -6,7 +6,7 @@ import {
   type Session,
   sessionsTable,
   usersTable,
-} from "@/server/db/schema"
+} from "@/server/db/old-schema"
 import { type DB } from "@/server/db"
 
 // const TOKEN_BYTES = 20 as const

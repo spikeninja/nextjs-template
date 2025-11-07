@@ -1,6 +1,6 @@
 import { DB } from "@/server/db"
 import { eq } from "drizzle-orm"
-import { usersTable } from "@/server/db/schema"
+import { usersTable } from "@/server/db/old-schema"
 import { hashPassword } from "@/lib/security"
 
 export class UsersRepository {
