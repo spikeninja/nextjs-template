@@ -1,25 +1,31 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { NavButton } from "@/components/NavButton"
 import { HomeIcon, LogOutIcon } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
-import { logoutAction } from "@/app/(auth)/actions"
+import { authClient } from "@/lib/auth-client"
 
 export function Header() {
+  const router = useRouter()
+
   const { mutate } = useMutation({
     mutationKey: ["logout"],
-    mutationFn: logoutAction,
+    mutationFn: () => authClient.signOut(),
+    onSuccess: () => {
+      router.push("/login")
+    },
   })
 
   return (
     <header className="animate-slide bg-background h-12 p-2 border-b sticky top-0 z-20">
       <div className="flex h-8 items-center justify-between w-full">
         <div className="flex items-center gap-2">
-          <NavButton href="/home" label="Home" icon={HomeIcon} />
+          <NavButton href="/app" label="Home" icon={HomeIcon} />
           <Link
-            href="/home"
+            href="/app"
             className="flex justify-center items-center gap-2 ml-0"
             title="Home"
           >

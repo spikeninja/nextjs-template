@@ -1,5 +1,6 @@
 "use server"
 
+import * as z from "zod"
 import { redirects, SESSION_COOKIE_NAME } from "@/lib/constants"
 import {
   loginSchema,
@@ -30,14 +31,14 @@ export async function loginAction(obj: { email: string; password: string }) {
 
   const parsed = loginSchema.safeParse(obj)
   if (!parsed.success) {
-    const err = parsed.error.flatten()
+    const err = z.treeifyError(parsed.error)
     return {
       success: false,
       payload: {
         error: "Validation Error",
         meta: {
-          email: err.fieldErrors.email?.[0],
-          password: err.fieldErrors.password?.[0],
+          email: err.properties?.email?.errors?.[0],
+          password: err.properties?.password?.errors?.[0],
         },
       },
     }
@@ -77,14 +78,14 @@ export async function registerAction(obj: {
 
   const parsed = registerSchema.safeParse(obj)
   if (!parsed.success) {
-    const err = parsed.error.flatten()
+    const err = z.treeifyError(parsed.error)
     return {
       success: false,
       payload: {
         error: "Validation Error",
         meta: {
-          email: err.fieldErrors.email?.[0],
-          password: err.fieldErrors.password?.[0],
+          email: err.properties?.email?.errors?.[0],
+          password: err.properties?.password?.errors?.[0],
         },
       },
     }
@@ -102,7 +103,7 @@ export async function registerAction(obj: {
   } catch (err) {
     return {
       success: false,
-      paload: {
+      payload: {
         error: err,
         meta: null,
       },
@@ -118,14 +119,14 @@ export async function verifyEmailAction(obj: { code: string; userId: number }) {
 
   const parsed = emailVerifySchema.safeParse(obj)
   if (!parsed.success) {
-    const err = parsed.error.flatten()
+    const err = z.treeifyError(parsed.error)
     return {
       success: false,
       payload: {
         error: "Validation Error",
         meta: {
-          code: err.fieldErrors.code?.[0],
-          userId: err.fieldErrors.userId?.[0],
+          code: err.properties?.code?.errors?.[0],
+          userId: err.properties?.userId?.errors?.[0],
         },
       },
     }

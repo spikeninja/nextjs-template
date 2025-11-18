@@ -2,24 +2,28 @@
 
 import Link from "next/link"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { loginAction } from "@/app/(auth)/actions"
+import { authClient } from "@/lib/auth-client"
+import { Button } from "@/components/ui/button"
 import { useMutation } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type Login, loginSchema } from "@/app/(auth)/validation"
 import { SubmitHandler, useForm } from "react-hook-form"
+import { useRouter } from "next/navigation"
 
 export function LoginForm() {
-  const { mutate: server_login } = useMutation({
+  const router = useRouter()
+  const { mutate: login } = useMutation({
     mutationKey: ["login"],
-    mutationFn: loginAction,
+    mutationFn: (data: Login) =>
+      authClient.signIn.email({
+        ...data,
+      }),
     onSuccess: (response) => {
-      if (!response.success) {
-        // todo: populate response.payload.error
-        toast.error("Login Error", {
-          position: "top-center",
-        })
+      if (response.error) {
+        toast.error(response.error.message, { position: "top-center" })
+      } else {
+        router.push("/app")
       }
     },
   })
@@ -28,7 +32,7 @@ export function LoginForm() {
     resolver: zodResolver(loginSchema),
   })
   const onSubmit: SubmitHandler<Login> = (data) => {
-    server_login(data)
+    login(data)
   }
 
   return (

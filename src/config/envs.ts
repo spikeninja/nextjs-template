@@ -1,9 +1,9 @@
-import { z } from "zod"
+import * as z from "zod"
 import "dotenv/config"
 
 const envSchema = z
   .object({
-    APP_URL: z.string(),
+    NEXT_PUBLIC_APP_URL: z.string(),
 
     POSTGRES_HOST: z.string(),
     POSTGRES_PORT: z.coerce.number(),
@@ -26,7 +26,7 @@ const envSchema = z
     SMTP_PASSWORD: z.string(),
   })
   .transform((obj) => ({
-    appUrl: obj.APP_URL,
+    appUrl: obj.NEXT_PUBLIC_APP_URL,
 
     resetPasswordTokenMinutes: obj.RESET_PASSWORD_TOKEN_MINUTES,
     resetPasswordMaxAttemptsPerDay: obj.RESET_PASSWORD_MAX_ATTEMPTS_PER_DAY,
@@ -51,4 +51,4 @@ const envSchema = z
     captchaPassToken: obj.CAPTCHA_PASS_TOKEN,
   }))
 
-export const settings = envSchema.parse(process.env)
+export const envs = envSchema.parse(process.env)

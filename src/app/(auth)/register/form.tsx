@@ -4,19 +4,26 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { registerAction } from "@/app/(auth)/actions"
 import { useMutation } from "@tanstack/react-query"
 import { type Register, registerSchema } from "@/app/(auth)/validation"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useRouter } from "next/navigation"
+import { authClient } from "@/lib/auth-client"
 
 export default function RegisterForm() {
+  const router = useRouter()
   const { mutate } = useMutation({
     mutationKey: ["register"],
-    mutationFn: registerAction,
+    mutationFn: (data: Register) =>
+      authClient.signUp.email({
+        ...data,
+      }),
     onSuccess: (response) => {
-      if (!response.success) {
-        toast.error(response.payload?.error, { position: "top-center" })
+      if (response.error) {
+        toast.error(response.error.message, { position: "top-center" })
+      } else {
+        router.push("/login")
       }
     },
   })

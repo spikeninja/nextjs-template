@@ -1,7 +1,7 @@
-import { settings } from "@/config/envs"
+import { envs } from "@/config/envs"
 
 export const redisConn = {
-  host: settings.redisHost,
-  port: settings.redisPort,
+  host: envs.redisHost,
+  port: envs.redisPort,
   maxRetriesPerRequest: null,
 }

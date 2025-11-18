@@ -1,5 +1,5 @@
 import { DB } from "@/server/db"
-import { settings } from "@/config/envs"
+import { envs } from "@/config/envs"
 import { and, count, eq, gte } from "drizzle-orm"
 import { hashPassword, utcNow } from "@/lib/security"
 import { passwordResetTokensTable } from "@/server/db/old-schema"
@@ -46,7 +46,7 @@ export class PasswordResetTokensRepository {
   async create({ token, userId }: { token: string; userId: number }) {
     const now = await utcNow()
     const hashedToken = await hashPassword(token)
-    const expiresAt = now.add(settings.resetPasswordTokenMinutes, "minutes")
+    const expiresAt = now.add(envs.resetPasswordTokenMinutes, "minutes")
 
     return this.db
       .insert(passwordResetTokensTable)

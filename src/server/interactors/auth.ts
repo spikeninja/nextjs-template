@@ -1,5 +1,5 @@
 import crypto from "node:crypto"
-import { settings } from "@/config/envs"
+import { envs } from "@/config/envs"
 import { UsersRepository } from "@/server/repos/users"
 import { SessionService } from "@/server/services/sessions"
 import { sendEmailSMTP } from "@/server/services/emailSender"
@@ -55,11 +55,11 @@ export const registerInteractor = async (
       subject: "Verify your email",
       html: `Your verification code is: ${verificationCode}`,
       config: {
-        port: settings.smtpPort,
-        host: settings.smtpServer,
+        port: envs.smtpPort,
+        host: envs.smtpServer,
         auth: {
-          email: settings.smtpEmail,
-          pass: settings.smtpPassword,
+          email: envs.smtpEmail,
+          pass: envs.smtpPassword,
         },
       },
     })
@@ -79,7 +79,7 @@ export const verifyEmailInteractor = async (
   const { userId, code } = values
   const [oneTimeCode] = await oneTimeCodeRepository.getLastCode({ userId })
 
-  if (oneTimeCode.verificationAttempts >= settings.max_verification_attempts) {
+  if (oneTimeCode.verificationAttempts >= envs.max_verification_attempts) {
     throw new Error(
       "You've reached the limit of trying to enter the code. Login again to generate a new code"
     )
@@ -93,8 +93,7 @@ export const verifyEmailInteractor = async (
   } else {
     await oneTimeCodeRepository.increaseAttempts({ id: oneTimeCode.id })
     const attemptsRemain =
-      settings.max_verification_attempts -
-      (oneTimeCode.verificationAttempts + 1)
+      envs.max_verification_attempts - (oneTimeCode.verificationAttempts + 1)
     throw new Error(`Invalid code. Attempts Remain: ${attemptsRemain}`)
   }
 }
@@ -126,7 +125,7 @@ export const forgotPasswordInteractor = async (
     minutes: 60 * 24,
   })
 
-  if (tokensCount.count >= settings.resetPasswordMaxAttemptsPerDay) {
+  if (tokensCount.count >= envs.resetPasswordMaxAttemptsPerDay) {
     throw new Error("You've reached the limit of trying to reset the password")
   }
 
@@ -140,7 +139,7 @@ export const forgotPasswordInteractor = async (
 
   const queryParams = { token, sessionId: dbToken.id.toString() }
   const params = new URLSearchParams(queryParams)
-  const url = `${settings.appUrl}/reset-password?${params.toString()}`
+  const url = `${envs.appUrl}/reset-password?${params.toString()}`
 
   if (process.env.NODE_ENV === "production") {
     await sendEmailSMTP({
@@ -148,11 +147,11 @@ export const forgotPasswordInteractor = async (
       subject: "Forgot Password",
       html: `Your link to restore the password is: ${url}`,
       config: {
-        port: settings.smtpPort,
-        host: settings.smtpServer,
+        port: envs.smtpPort,
+        host: envs.smtpServer,
         auth: {
-          email: settings.smtpEmail,
-          pass: settings.smtpPassword,
+          email: envs.smtpEmail,
+          pass: envs.smtpPassword,
         },
       },
     })
