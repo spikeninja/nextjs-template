@@ -12,7 +12,8 @@
     "lint": "eslint",
     "prepare": "husky",
     "db:migrate": "drizzle-kit migrate",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "format-check": "prettier --check src"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",
