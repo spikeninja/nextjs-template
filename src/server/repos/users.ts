@@ -1,7 +1,7 @@
 import { DB } from "@/server/db"
 import { eq } from "drizzle-orm"
-import { usersTable } from "@/server/db/old-schema"
 import { hashPassword } from "@/lib/security"
+import { usersTable } from "@/server/db/old-schema"
 
 export class UsersRepository {
   constructor(private readonly db: DB) {}
