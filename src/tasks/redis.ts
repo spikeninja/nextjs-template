@@ -1,4 +1,4 @@
-import { envs } from "@/config/envs"
+import { envs } from "@/envs"
 
 export const redisConn = {
   host: envs.redisHost,

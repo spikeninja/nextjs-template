@@ -1,5 +1,5 @@
 import { DB } from "@/server/db"
-import { envs } from "@/config/envs"
+import { envs } from "@/envs"
 import { and, count, eq, gte } from "drizzle-orm"
 import { hashPassword, utcNow } from "@/lib/security"
 import { passwordResetTokensTable } from "@/server/db/old-schema"

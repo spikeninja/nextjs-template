@@ -1,36 +1,31 @@
 name: PROJECT_NAME_dev
 
 services:
-  queue:
+  postgres:
     build:
-      context: .
-      dockerfile: ./docker/dev.dockerfile
-    container_name: PROJECT_NAME_queue_dev
-    command: bun tsx watch src/tasks/workers.ts
+      context: docker
+      dockerfile: postgres.Dockerfile
+    restart: unless-stopped
+    container_name: PROJECT_NAME_pgsql_dev
+    environment:
+      POSTGRES_DB: ${PG_DB_NAME}
+      POSTGRES_USER: ${PG_DB_USER}
+      POSTGRES_PASSWORD: ${PG_DB_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: umami
     volumes:
-      - .:/app/
-      - ./node_modules:/app/node_modules
-    depends_on:
-      - redis
+      - postgres_data:/var/lib/postgresql
     env_file:
       - .env
-    environment:
-      - REDIS_HOST=redis # to override the default redis host
-      - POSTGRES_HOST=postgres_db
-      - POSTGRES_PORT=5432
-
-  postgres_db:
-    image: postgres:18-alpine
-    container_name: PROJECT_NAME_pgsql_dev
     ports:
       - 5433:5432
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    env_file:
-      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_DB_USER} -d ${PG_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: PROJECT_NAME_redis_dev
     ports:
       - 6379:6379

@@ -1,5 +1,5 @@
 import crypto from "node:crypto"
-import { envs } from "@/config/envs"
+import { envs } from "@/envs"
 import { UsersRepository } from "@/server/repos/users"
 import { SessionService } from "@/server/services/sessions"
 import { sendEmailSMTP } from "@/server/services/emailSender"

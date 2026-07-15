@@ -1,2 +1,2 @@
 source .env
-docker exec -it pgsql_prod psql -U $POSTGRES_USER -d $POSTGRES_DB
+docker exec -it PROJECT_NAME_pgsql_prod psql -U $PG_DB_USER -d $PG_DB_NAME

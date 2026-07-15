@@ -5,11 +5,11 @@ const envSchema = z
   .object({
     NEXT_PUBLIC_APP_URL: z.string(),
 
-    POSTGRES_HOST: z.string(),
-    POSTGRES_PORT: z.coerce.number(),
-    POSTGRES_USER: z.string(),
-    POSTGRES_PASSWORD: z.string(),
-    POSTGRES_DB: z.string(),
+    PG_HOST: z.string(),
+    PG_PORT: z.coerce.number(),
+    PG_DB_USER: z.string(),
+    PG_DB_PASSWORD: z.string(),
+    PG_DB_NAME: z.string(),
 
     REDIS_HOST: z.string(),
     REDIS_PORT: z.coerce.number(),
@@ -39,7 +39,7 @@ const envSchema = z
     smtpServer: obj.SMTP_SERVER,
     smtpPassword: obj.SMTP_PASSWORD,
 
-    databaseURL: `postgresql://${obj.POSTGRES_USER}:${obj.POSTGRES_PASSWORD}@${obj.POSTGRES_HOST}:${obj.POSTGRES_PORT}/${obj.POSTGRES_DB}?schema=public`,
+    databaseURL: `postgresql://${obj.PG_DB_USER}:${obj.PG_DB_PASSWORD}@${obj.PG_HOST}:${obj.PG_PORT}/${obj.PG_DB_NAME}?schema=public`,
 
     turnstileSecretKey: obj.TURNSTILE_SECRET_KEY,
 
